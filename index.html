@@ -239,11 +239,13 @@ function connectNet(){
     onlineRoom=d.room;onlineMode=true;
     netMsg('Room '+d.room+' · '+d.players.length+'/6 players',true);
     $('ovmsg').textContent='Room '+d.room+' — share the code with friends. When ready, press Start Online Race.';
-    $('go').textContent='Start Online Race';const sb=document.getElementById('startOnline');if(sb){sb.disabled=d.players.length<6;sb.textContent=d.players.length<6?'Waiting for players ('+d.players.length+'/6)':'🏁 Start Online Race (6/6)';}
+    $('go').textContent='Start Online Race';const sb=document.getElementById('startOnline');if(sb){sb.disabled=d.players.length<5;sb.textContent=d.players.length<5?'Waiting for players ('+d.players.length+'/5)':'🏁 Start Online Race (auto at 5)';}
     syncRemoteList(d.players);
   });
-  netSocket.on('room-update',d=>{if(onlineRoom){netMsg('Room '+d.room+' · '+d.players.length+'/6 players',true);syncRemoteList(d.players);const b=document.getElementById('startOnline');if(b){b.disabled=d.players.length<6;b.textContent=d.players.length<6?'Waiting for players ('+d.players.length+'/6)':'🏁 Start Online Race (6/6)'}}});
-  netSocket.on('race-wait',d=>netMsg('Need 6 players to start · '+d.count+'/6 connected'));
+  netSocket.on('room-update',d=>{if(onlineRoom){netMsg('Room '+d.room+' · '+d.players.length+'/6 players',true);syncRemoteList(d.players);const b=document.getElementById('startOnline');if(b){b.disabled=d.players.length<5;b.textContent=d.players.length<5?'Waiting for players ('+d.players.length+'/5)':'🏁 Start Online Race (auto at 5)'}}});
+  netSocket.on('race-wait',d=>netMsg('Need '+d.required+' players to start · '+d.count+'/'+d.required+' connected'));
+  netSocket.on('auto-start-countdown',d=>{if(d.room===onlineRoom)netMsg('5 players connected! Race auto-starting in '+d.seconds+' seconds…',true)});
+  netSocket.on('auto-start-cancelled',d=>{if(d.room===onlineRoom)netMsg('A player left. Waiting for 5 players · '+d.count+'/5')});
   netSocket.on('leaderboard-data',rows=>{const msg=rows.length?rows.map((r,i)=>(i+1)+'. '+r.name+' — '+r.finishes+' finishes'+(r.bestTime?' · best '+r.bestTime.toFixed(1)+'s':'')).join('\n'):'No online wins recorded yet.';alert('🏆 ONLINE LEADERBOARD\n\n'+msg)});
   netSocket.on('player-state',d=>setRemoteState(d));
   netSocket.on('player-left',id=>{const p=remoteRacers.get(id);if(p){scene.remove(p.b.root);remoteRacers.delete(id)}});

@@ -1,23 +1,22 @@
-# Indian Bike Racing — Leaderboard, Reverse & 6-Player Start
+# Indian Bike Racing — Quick Match Auto Start
 
-## Features added
-- Online room capacity is now 6 players.
-- `Start Online Race` button: race starts only after all 6 players have joined and someone presses the button. Before 6 players, the server sends a waiting message.
-- Online leaderboard shows race finishes and best recorded time for the current server process. This is in-memory and resets if the server restarts; it is not a persistent account-based global ranking yet.
-- Reverse gear: hold `X` on keyboard or hold the `R` touch control. Gas moves the bike forward again. Reverse gear is shown as `R` on the HUD.
-- Existing bike garage, map, weather and other game UI are preserved.
+## Update
+- Quick Match rooms automatically start the race 3 seconds after the 5th player joins.
+- All players in that room receive the same server-sent race start event. Nobody needs to press Start Online individually.
+- If a player leaves and the room drops below 5 before countdown completes, auto-start is cancelled and matchmaking waits for 5 again.
+- Maximum room size remains 6 players.
+- Manual Start Online is also enabled at 5 players.
+- Existing reverse control, leaderboard, bike garage, weather and mobile UI are preserved.
 
 ## Run locally
 ```bash
 npm.cmd install
 npm.cmd start
 ```
-Open http://localhost:3000 .
+Open http://localhost:3000.
 
-## Deploy update
-Upload the extracted project files (not the ZIP itself) to the existing GitHub repository, commit, then trigger a Render deploy. Make sure `index.html`, `server.js`, `package.json`, and `package-lock.json` are kept together.
+## Deploy to Render
+Upload the extracted project files (not the ZIP itself) to the GitHub repository, commit the changes, then use Render → Manual Deploy → Deploy latest commit.
 
-## Limitations
-- The 6-player start requires exactly 6 connected players in the same room; with fewer than 6 it waits.
-- Online leaderboard is in-memory and based on client-reported finish events; it is a prototype, not cheat-resistant or persistent.
-- JavaScript syntax checks passed, but full browser and six-client multiplayer testing was not performed.
+## Notes
+JavaScript syntax checks passed. Full five/six-client live multiplayer testing has not been performed.
