@@ -1,22 +1,18 @@
-# Indian Bike Racing — Quick Match Auto Start
+# Indian Bike Racing — Room Host Map + Random Quick Match
 
-## Update
-- Quick Match rooms automatically start the race 3 seconds after the 5th player joins.
-- All players in that room receive the same server-sent race start event. Nobody needs to press Start Online individually.
-- If a player leaves and the room drops below 5 before countdown completes, auto-start is cancelled and matchmaking waits for 5 again.
-- Maximum room size remains 6 players.
-- Manual Start Online is also enabled at 5 players.
-- Existing reverse control, leaderboard, bike garage, weather and mobile UI are preserved.
+## Updates
+- Removed the Night Mode toggle and removed Night from the weather choices. Daytime remains the default; Sunny, Sunset, Rain, Fog and Storm remain.
+- Create Room assigns the creator as room host.
+- Host gets a Room Map selector and Apply Map button. Changing the map reloads clients onto that track and rejoins the same room.
+- Quick Match chooses a random map for a newly created room and joins any waiting Quick Match room regardless of its map. Joining players synchronize to the room's selected map.
+- Empty rooms are kept for up to 45 seconds to let clients reconnect after the shared map reload.
 
 ## Run locally
 ```bash
 npm.cmd install
 npm.cmd start
 ```
-Open http://localhost:3000.
+Open http://localhost:3000
 
-## Deploy to Render
-Upload the extracted project files (not the ZIP itself) to the GitHub repository, commit the changes, then use Render → Manual Deploy → Deploy latest commit.
-
-## Notes
-JavaScript syntax checks passed. Full five/six-client live multiplayer testing has not been performed.
+## Deploy
+Upload the files in this ZIP to the existing GitHub repository and commit them. Then redeploy the latest commit on Render. This is a prototype; test map switching and quick matchmaking with multiple browser sessions before sharing publicly.

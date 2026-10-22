@@ -174,6 +174,7 @@ input{touch-action:manipulation}
 #overlay.lob2 .col>*{max-width:100%!important;width:auto;box-sizing:border-box}
 #overlay.lob2 #garage,#overlay.lob2 #maps,#overlay.lob2 #onlineBox,#overlay.lob2 #weatherPanel{width:100%!important;max-width:100%!important;margin:0!important}
 #overlay.lob2 #maps{grid-template-columns:repeat(3,1fr)}
+#hostSettings select{font:16px 'Barlow Condensed',sans-serif}
 #overlay.lob2 h1{font-size:clamp(30px,10vh,64px)}
 #overlay.lob2 p{font-size:14px;max-width:none}
 #overlay.lob2 #go{font-size:30px;position:sticky;bottom:0;z-index:2}
@@ -200,15 +201,18 @@ input{touch-action:manipulation}
     <input id="roomCode" maxlength="5" placeholder="ROOM CODE" style="min-width:0;flex:1;padding:10px;background:#111;color:#fff;border:1px solid #777;font:18px Barlow,sans-serif;text-transform:uppercase">
     <button id="joinRoom" style="font-size:18px;padding:9px 12px">Join</button>
   </div>
+  <div id="hostSettings" style="display:none;gap:8px;align-items:center;flex-wrap:wrap;padding:8px;background:#111c;border:1px solid #f5c400">
+    <strong>👑 HOST SETTINGS</strong><label for="hostMap">Room map:</label><select id="hostMap" style="max-width:220px;padding:8px;background:#111;color:#fff;border:1px solid #777"></select><button id="applyHostMap" type="button" style="font-size:16px;padding:8px 12px">Apply Map</button>
+  </div>
   <div id="netStatus" style="font-size:14px;color:#ddd">Connecting to multiplayer server…</div>
 </div>
 <div id="weatherPanel" style="width:min(560px,92vw);margin:8px 0;padding:10px;background:#111c;border:1px solid #f5c400;display:grid;gap:6px">
-<strong style="color:#f5c400">WEATHER & TIME</strong>
+<strong style="color:#f5c400">WEATHER</strong>
 <div style="display:flex;gap:6px;flex-wrap:wrap">
-<button class="wx" data-weather="sunny">☀️ Sunny</button><button class="wx" data-weather="sunset">🌅 Sunset</button><button class="wx" data-weather="night">🌙 Night</button><button class="wx" data-weather="rain">🌧️ Rain</button><button class="wx" data-weather="fog">🌫️ Fog</button><button class="wx" data-weather="storm">⛈️ Storm</button>
+<button class="wx" data-weather="sunny">☀️ Sunny</button><button class="wx" data-weather="sunset">🌅 Sunset</button><button class="wx" data-weather="rain">🌧️ Rain</button><button class="wx" data-weather="fog">🌫️ Fog</button><button class="wx" data-weather="storm">⛈️ Storm</button>
 </div><small id="wxStatus">Sunny conditions selected</small></div>
 <button id="go"><button id="lobbyb" style="display:none;background:var(--panel);font-size:18px;padding:10px 24px">Back to lobby</button></div>
-<button id="envToggle" type="button">🌙 NIGHT MODE</button><div id="envLabel">DAY · OFF-ROAD CONDITIONS</div><div id="nfx"></div><div id="hud">
+<div id="nfx"></div><div id="hud">
   <div class="panel" id="info"><div id="mapn"></div><canvas id="miniMap" width="180" height="130" style="display:block;width:180px;height:130px;margin-top:6px;border:1px solid #f5c400;background:#10151acc;border-radius:4px"></canvas><div id="mapLegend" style="font-size:11px">● You　◆ Checkpoint　✦ Coin</div><div id="cam">Camera: Chase</div><div id="stat">On track</div><button id="showStats" style="margin-top:6px;padding:5px 8px">🏆 Stats & Achievements</button></div>
   <div class="panel" id="race" style="display:none;left:50%;transform:translateX(-50%);top:12px;font-size:22px;font-weight:700;text-align:center"></div><div id="cd" style="display:none;position:fixed;left:0;right:0;top:28%;text-align:center;font:italic 700 170px/1 'Barlow Condensed',sans-serif;color:#f5c400;text-shadow:0 6px 0 #000"></div>
   <div class="panel" id="help">W/↑ gas · S/↓ brake · X reverse · A/D steer · Space handbrake<br>Shift nitro · C camera · R reset · Esc pause · Controller supported</div>
@@ -225,44 +229,52 @@ input{touch-action:manipulation}
 <script>
 
 // ---- Multiplayer prototype: Socket.IO rooms and live bike sync ----
-let netSocket=null, netReady=false, onlineMode=false, onlineRoom='', netTick=0;
+let netSocket=null, netReady=false, onlineMode=false, onlineRoom='', netTick=0, roomPlayers=[];
 const remoteRacers=new Map();
+function gridPosition(slot){const tangent=T[0]||{x:0,z:1};const col=(slot%3)-1;const row=Math.floor(slot/3);const lateral=col*2.0;const back=row*3.2;return {x:P[0].x+(tangent.z||0)*lateral-(tangent.x||0)*back,z:P[0].z-(tangent.x||0)*lateral-(tangent.z||1)*back};}
 function netMsg(s,ok=false){const e=document.getElementById('netStatus');if(e){e.textContent=s;e.style.color=ok?'#9cff9c':'#ffd27a'}}
 function racerName(){return (document.getElementById('playerName')?.value||'Racer').trim().slice(0,18)||'Racer'}
 function connectNet(){
   if(typeof io==='undefined'){netMsg('Socket.IO unavailable. Start the game with npm start, then open http://localhost:3000.');return}
   netSocket=io();
-  netSocket.on('connect',()=>{netReady=true;netMsg('Connected. Quick Match or create/join a room.',true)});
+  netSocket.on('connect',()=>{netReady=true;netMsg('Connected. Quick Match or create/join a room.',true);const pending=sessionStorage.getItem('ibr_pending_room');if(pending){sessionStorage.removeItem('ibr_pending_room');setTimeout(()=>enterRoom('join',pending),250)}});
   netSocket.on('disconnect',()=>{netReady=false;netMsg('Disconnected — reconnecting…')});
   netSocket.on('connect_error',()=>netMsg('Server not reachable. Run npm start and refresh.'));
   netSocket.on('room-joined',d=>{
-    onlineRoom=d.room;onlineMode=true;
+    if(Number.isInteger(d.map)&&d.map!==MI){try{sessionStorage.setItem('map',d.map);sessionStorage.setItem('ibr_pending_room',d.room)}catch(e){}location.hash='m'+d.map;location.reload();return}
+    onlineRoom=d.room;onlineMode=true;roomPlayers=d.players||[];roomHost=d.hostId===netSocket.id;
+    const hs=document.getElementById('hostSettings');if(hs)hs.style.display=roomHost?'flex':'none';if(roomHost)fillHostMap(d.map);
+
     netMsg('Room '+d.room+' · '+d.players.length+'/6 players',true);
     $('ovmsg').textContent='Room '+d.room+' — share the code with friends. When ready, press Start Online Race.';
     $('go').textContent='Start Online Race';const sb=document.getElementById('startOnline');if(sb){sb.disabled=d.players.length<5;sb.textContent=d.players.length<5?'Waiting for players ('+d.players.length+'/5)':'🏁 Start Online Race (auto at 5)';}
     syncRemoteList(d.players);
   });
-  netSocket.on('room-update',d=>{if(onlineRoom){netMsg('Room '+d.room+' · '+d.players.length+'/6 players',true);syncRemoteList(d.players);const b=document.getElementById('startOnline');if(b){b.disabled=d.players.length<5;b.textContent=d.players.length<5?'Waiting for players ('+d.players.length+'/5)':'🏁 Start Online Race (auto at 5)'}}});
+  netSocket.on('room-update',d=>{if(onlineRoom){roomHost=d.hostId===netSocket.id;const hs=document.getElementById('hostSettings');if(hs)hs.style.display=roomHost?'flex':'none';if(roomHost)fillHostMap(d.map);netMsg('Room '+d.room+' · '+d.players.length+'/6 players'+(roomHost?' · You are host':''),true);syncRemoteList(d.players);const b=document.getElementById('startOnline');if(b){b.disabled=d.players.length<5;b.textContent=d.players.length<5?'Waiting for players ('+d.players.length+'/5)':'🏁 Start Online Race (auto at 5)'}}});
   netSocket.on('race-wait',d=>netMsg('Need '+d.required+' players to start · '+d.count+'/'+d.required+' connected'));
   netSocket.on('auto-start-countdown',d=>{if(d.room===onlineRoom)netMsg('5 players connected! Race auto-starting in '+d.seconds+' seconds…',true)});
   netSocket.on('auto-start-cancelled',d=>{if(d.room===onlineRoom)netMsg('A player left. Waiting for 5 players · '+d.count+'/5')});
   netSocket.on('leaderboard-data',rows=>{const msg=rows.length?rows.map((r,i)=>(i+1)+'. '+r.name+' — '+r.finishes+' finishes'+(r.bestTime?' · best '+r.bestTime.toFixed(1)+'s':'')).join('\n'):'No online wins recorded yet.';alert('🏆 ONLINE LEADERBOARD\n\n'+msg)});
   netSocket.on('player-state',d=>setRemoteState(d));
   netSocket.on('player-left',id=>{const p=remoteRacers.get(id);if(p){scene.remove(p.b.root);remoteRacers.delete(id)}});
+  netSocket.on('map-changed',d=>{if(d.room!==onlineRoom||!Number.isInteger(d.map)||d.map===MI)return;try{sessionStorage.setItem('map',d.map);sessionStorage.setItem('ibr_pending_room',d.room)}catch(e){}location.hash='m'+d.map;location.reload()});
   netSocket.on('race-start',d=>{if(d.room===onlineRoom&&!started)startRace(true)});
   netSocket.on('room-error',s=>netMsg(s));
 }
-function enterRoom(mode){
+let roomHost=false;
+function fillHostMap(selected){const el=document.getElementById('hostMap');if(!el||!MAPS)return;el.innerHTML='';MAPS.forEach((m,i)=>{const o=document.createElement('option');o.value=i;o.textContent=m.name;el.appendChild(o)});el.value=String(Number.isInteger(selected)?selected:MI)}
+function enterRoom(mode,codeOverride){
   if(!netSocket||!netReady){netMsg('Server not connected. Run npm.cmd install, then npm.cmd start.');return}
-  netSocket.emit('join-room',{mode,code:document.getElementById('roomCode').value.trim().toUpperCase(),name:racerName(),bike:SAVE.sel,map:MI});
+  netSocket.emit('join-room',{mode,code:codeOverride||document.getElementById('roomCode').value.trim().toUpperCase(),name:racerName(),bike:SAVE.sel,map:MI});
 }
 function syncRemoteList(players){
+  roomPlayers=players||roomPlayers;
   const ids=new Set(players.filter(p=>p.id!==netSocket.id).map(p=>p.id));
   for(const [id,p] of remoteRacers)if(!ids.has(id)){scene.remove(p.b.root);remoteRacers.delete(id)}
   for(const p of players){if(p.id===netSocket.id||remoteRacers.has(p.id))continue;
     const k=Math.max(0,Math.min(BIKES.length-1,Number(p.bike)||0));
     const b=buildBike(BIKES[k].color,BIKES[k].o);b.root.visible=true;scene.add(b.root);
-    remoteRacers.set(p.id,{b,name:p.name||'Racer',x:P[0].x,z:P[0].z,h:0,v:0,target:null});
+    const slot=Math.max(0,players.findIndex(q=>q.id===p.id));const gp=gridPosition(slot);remoteRacers.set(p.id,{b,name:p.name||'Racer',x:gp.x,z:gp.z,h:0,v:0,target:null,slot});b.root.position.set(gp.x,0,gp.z);
   }
 }
 function setRemoteState(d){
@@ -615,7 +627,7 @@ document.getElementById('go').onclick=()=>{initAudio();if(ac&&ac.state==='suspen
 
 // ---- Loop ----
 let last=performance.now(),tm=0,fov=65;
-$('envToggle').addEventListener('click',()=>setTimeOfDay(!isNight));
+
 // Lightweight pooled off-road dust and wet-mud spray particles.
 const splashPool=[];const splashGeo=new THREE.SphereGeometry(0.12,5,4);
 for(let k=0;k<72;k++){const mat=new THREE.MeshBasicMaterial({color:k%3===0?0x4b321d:(k%3===1?0x72502b:0x9a8060),transparent:true,opacity:.85});const m=new THREE.Mesh(splashGeo,mat);m.visible=false;scene.add(m);splashPool.push({m,v:new THREE.Vector3(),life:0,max:0})}
@@ -669,11 +681,11 @@ function applyWeather(mode){
  document.querySelectorAll('.wx').forEach(b=>b.classList.toggle('active',b.dataset.weather===mode));
  const status=document.getElementById('wxStatus');if(status)status.textContent=wxLabels[mode]||mode;
  const label=document.getElementById('envLabel');if(label)label.textContent=mode.toUpperCase()+' · OFF-ROAD CONDITIONS';
- const toggle=document.getElementById('envToggle');if(toggle)toggle.textContent=night?'☀️ DAY MODE':'🌙 NIGHT MODE';
+ 
 }
 document.querySelectorAll('.wx').forEach(b=>b.addEventListener('click',()=>applyWeather(b.dataset.weather)));
 const oldEnvToggle=document.getElementById('envToggle');
-if(oldEnvToggle)oldEnvToggle.addEventListener('click',()=>applyWeather(weatherMode==='night'?'sunny':'night'));
+
 // Rain streaks in camera space; reused objects keep the effect lightweight.
 const rainGroup=new THREE.Group();scene.add(rainGroup);
 const rainMat=new THREE.LineBasicMaterial({color:0xc9e5f5,transparent:true,opacity:.55});
@@ -786,7 +798,7 @@ function toLobby(){clearTraffic();stopEngineAudio();try{sessionStorage.removeIte
   const o=$('overlay');o.style.display='flex';o.classList.remove('pz');o.querySelector('h1').textContent='Indian Bike Racing';
   $('ovmsg').textContent='Win races to earn coins and unlock bikes. Blue canisters refill your nitro.';$('go').textContent='Start race';$('lobbyb').style.display='none';renderGarage()}
 function startRace(fromServer=false){spawnTraffic();if(ac&&ac.state==='suspended')ac.resume();setBike(SAVE.sel);if(playMode==='free'){onlineMode=!!onlineRoom;}RC.state='count';RC.cd=3.99;RC.t=0;RC.dist=0;RC.last=0;RC.order=0;RC.go=0;
-  Object.assign(S,{x:P[0].x,z:P[0].z,h:Math.atan2(T[0].x,T[0].z),v:0,steer:0,nitro:1,y:0,vy:0,air:false,heat:0,hit:0,shake:0});
+  const mySlot=Math.max(0,roomPlayers.findIndex(p=>p.id===netSocket?.id));const grid=onlineMode?gridPosition(mySlot):{x:P[0].x,z:P[0].z};Object.assign(S,{x:grid.x,z:grid.z,h:Math.atan2(T[0].x,T[0].z),v:0,steer:0,nitro:1,y:0,vy:0,air:false,heat:0,hit:0,shake:0});
   RC.ais.forEach(a=>{a.base=31+MI*1.2+a.k*1.3;a.d=-(a.k+1)*1.3;a.fin=0;a.b.root.visible=(!onlineMode&&playMode!=='free'&&!trafficMode)});
   PICK.forEach(p=>{p.t=0;p.m.visible=true});bike.root.visible=true;started=true;paused=false;
   camera.clearViewOffset();$('overlay').style.display='none';$('race').style.display='block';if(playMode==='free'){$('race').innerHTML='🌍 FREE RIDE · Explore the world';}if(onlineMode&&!fromServer&&netSocket&&netReady)netSocket.emit('start-race',{room:onlineRoom,map:MI})}
@@ -806,7 +818,8 @@ function race(dt){
 $('lobbyb').onclick=toLobby;
 document.getElementById('startOnline').onclick=()=>{if(!onlineRoom){netMsg('Join Quick Match or create/join a room first.');return}if(!netSocket||!netReady)return;netSocket.emit('start-race',{room:onlineRoom,map:MI})};
 document.getElementById('leaderboardBtn').onclick=()=>{if(netSocket&&netReady)netSocket.emit('get-leaderboard');else alert('Connect to the online server to view leaderboard.')};
-$('quickMatch').onclick=()=>enterRoom('quick');$('createRoom').onclick=()=>enterRoom('create');$('joinRoom').onclick=()=>enterRoom('join');connectNet();
+$('quickMatch').onclick=()=>enterRoom('quick');$('createRoom').onclick=()=>enterRoom('create');$('joinRoom').onclick=()=>enterRoom('join');
+document.getElementById('applyHostMap').onclick=()=>{if(!roomHost||!onlineRoom||!netSocket||!netReady)return netMsg('Only the room host can change the map.');netSocket.emit('host-change-map',{room:onlineRoom,map:Number(document.getElementById('hostMap').value)});};connectNet();
 camera.position.set(S.x-Math.sin(S.h)*8,3.5,S.z-Math.cos(S.h)*8);toLobby();
 requestAnimationFrame(frame);
 </script>
@@ -829,9 +842,7 @@ requestAnimationFrame(frame);
   }
 
   // 2) Day/Night toggle lives inside the top button row on touch devices (no overlap)
-  const env=$$('envToggle'),top=$$('top');
-  function placeEnv(){if(!env||!top)return;if(coarse.matches){if(env.parentElement!==top)top.insertBefore(env,top.firstChild)}else if(env.parentElement===top)document.body.appendChild(env)}
-  placeEnv();coarse.addEventListener?.('change',placeEnv);
+  // Night-mode toggle removed; keep daytime as the default environment.
 
   // 3) Fullscreen + landscape lock (needs a user tap; Android Chrome supports lock, iPhone shows the rotate screen instead)
   async function goLandscape(){
