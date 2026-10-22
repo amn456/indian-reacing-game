@@ -23,3 +23,13 @@ Traffic models are simple placeholder geometry, not detailed licensed vehicle mo
 
 
 Bike collection update: added 15 bikes across Street, Sport, Dirt/Enduro/Motocross and Adventure categories. Suggested in-game coin prices are included. Bike entries use the game's existing procedural bike model builder; dedicated licensed 3D models are not included. Existing saved progress is preserved, but previously owned bike indices may map to different bikes after this expanded roster; consider resetting localStorage key `ibr1` if garage ownership looks unexpected.
+
+
+## Mobile update (landscape + two-thumb controls)
+- Game is landscape-only on phones. First tap enters fullscreen and locks landscape (Android Chrome). On iPhone/Safari, which cannot lock orientation, a "rotate your phone" screen shows in portrait and the race auto-pauses.
+- Two-thumb layout: left thumb = Steer ◀ ▶, right thumb = big Gas ▲, Brake ■, N2O (nitro), HB (handbrake). Multi-touch works, so you can steer and gas together.
+- Compact HUD: small minimap top-left, speed/nitro bottom-centre, Cam/Reset/Pause + Day/Night toggle top-right, respecting notches and safe areas.
+- Lobby uses two columns in landscape (start/modes/online on the left, bikes/maps on the right). Start button stays visible.
+- Lower render resolution on phones for smoother FPS; screen stays awake while playing.
+- Added `manifest.webmanifest` + `icon.svg`: use "Add to Home screen" for true fullscreen landscape app mode.
+- Phone testing: run on your PC, open `http://<PC-IP>:3000` on the phone (same Wi-Fi). Fullscreen/orientation lock work best on HTTPS or localhost.
