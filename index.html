@@ -184,23 +184,6 @@ input{touch-action:manipulation}
 #overlay.lob2[style*="flex"]{display:grid!important}
 @media (max-width:700px){#overlay.lob2,#overlay.lob2[style*="flex"]{grid-template-columns:minmax(0,1fr)!important;overflow-y:auto}#overlay.lob2 .col{max-height:none;overflow:visible}}
 
-
-/* Mobile usability patch: thumb-friendly controls and landscape full-screen */
-@media (pointer:coarse) {
-  #touch .tl { left: max(12px, env(safe-area-inset-left)); bottom: max(14px, env(safe-area-inset-bottom)); gap: 10px; }
-  #touch .tl button { width: clamp(66px, 13vw, 92px); height: clamp(66px, 13vw, 92px); border-radius: 22px; font-size: 30px; }
-  #touch .tr { right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3, minmax(48px, 1fr)); gap: 8px; align-items: end; }
-  #touch .tr button { width: clamp(52px, 10vw, 72px); height: clamp(52px, 10vw, 72px); border-radius: 18px; font-size: 20px; }
-  #touch .tr button.big { width: clamp(72px, 14vw, 96px); height: clamp(72px, 14vw, 96px); grid-column: 3; grid-row: 1 / span 2; border-radius: 24px; font-size: 32px; }
-  #touch .tr [data-k=nitro] { grid-column: 1; grid-row: 1; font-size: 12px; }
-  #touch .tr [data-k=hand] { grid-column: 2; grid-row: 1; font-size: 12px; }
-  #touch .tr [data-k=brake] { grid-column: 2; grid-row: 2; }
-  #fsBtn { display: block !important; position: fixed; right: max(12px, env(safe-area-inset-right)); top: max(54px, env(safe-area-inset-top)); z-index: 10; width: 44px; height: 44px; border-radius: 12px; }
-}
-@media (max-width: 700px) and (orientation: portrait) {
-  #rotate { display:flex; }
-}
-
 </style>
 </head>
 <body>
@@ -209,6 +192,8 @@ input{touch-action:manipulation}
   <input id="playerName" maxlength="18" value="Racer" placeholder="Racer name" style="box-sizing:border-box;width:100%;padding:10px;background:#111;color:#fff;border:1px solid #777;font:18px Barlow,sans-serif">
   <div style="display:flex;gap:8px;flex-wrap:wrap">
     <button id="quickMatch" style="font-size:18px;padding:9px 12px">Quick Match</button>
+    <button id="startOnline" style="font-size:18px;padding:9px 12px">🏁 Start Online (6 Players)</button>
+    <button id="leaderboardBtn" style="font-size:18px;padding:9px 12px">🏆 Leaderboard</button>
     <button id="createRoom" style="font-size:18px;padding:9px 12px">Create Room</button>
   </div>
   <div style="display:flex;gap:8px">
@@ -216,12 +201,6 @@ input{touch-action:manipulation}
     <button id="joinRoom" style="font-size:18px;padding:9px 12px">Join</button>
   </div>
   <div id="netStatus" style="font-size:14px;color:#ddd">Connecting to multiplayer server…</div>
-  <div id="globalChat" style="display:grid;gap:6px;margin-top:8px;padding:8px;background:#111c;border:1px solid #f5c400;border-radius:10px">
-    <strong style="color:#f5c400">🌐 GLOBAL CHAT</strong>
-    <div id="chatMessages" style="height:100px;overflow:auto;font-size:13px;text-align:left;background:#05050599;padding:6px;border-radius:6px" aria-live="polite">Connect to a room to chat.</div>
-    <div style="display:flex;gap:6px"><input id="chatInput" maxlength="180" placeholder="Type a message…" style="min-width:0;flex:1;padding:9px;background:#111;color:#fff;border:1px solid #777"><button id="chatSend">Send</button></div>
-  </div>
-
 </div>
 <div id="weatherPanel" style="width:min(560px,92vw);margin:8px 0;padding:10px;background:#111c;border:1px solid #f5c400;display:grid;gap:6px">
 <strong style="color:#f5c400">WEATHER & TIME</strong>
@@ -232,67 +211,40 @@ input{touch-action:manipulation}
 <button id="envToggle" type="button">🌙 NIGHT MODE</button><div id="envLabel">DAY · OFF-ROAD CONDITIONS</div><div id="nfx"></div><div id="hud">
   <div class="panel" id="info"><div id="mapn"></div><canvas id="miniMap" width="180" height="130" style="display:block;width:180px;height:130px;margin-top:6px;border:1px solid #f5c400;background:#10151acc;border-radius:4px"></canvas><div id="mapLegend" style="font-size:11px">● You　◆ Checkpoint　✦ Coin</div><div id="cam">Camera: Chase</div><div id="stat">On track</div><button id="showStats" style="margin-top:6px;padding:5px 8px">🏆 Stats & Achievements</button></div>
   <div class="panel" id="race" style="display:none;left:50%;transform:translateX(-50%);top:12px;font-size:22px;font-weight:700;text-align:center"></div><div id="cd" style="display:none;position:fixed;left:0;right:0;top:28%;text-align:center;font:italic 700 170px/1 'Barlow Condensed',sans-serif;color:#f5c400;text-shadow:0 6px 0 #000"></div>
-  <div class="panel" id="help">W/↑ gas · S/↓ brake · A/D steer · Space handbrake<br>Shift nitro · C camera · R reset · Esc pause · Controller supported</div>
+  <div class="panel" id="help">W/↑ gas · S/↓ brake · X reverse · A/D steer · Space handbrake<br>Shift nitro · C camera · R reset · Esc pause · Controller supported</div>
   <div class="panel" id="speed"><div id="kmh">0</div><div id="unit">km/h &nbsp; <span id="gear">N</span></div>
     <div class="bar" id="rpm"><i></i></div><div style="font-size:13px;color:var(--nitro);margin-top:6px">NITRO (Shift)</div><div class="bar" id="nitro"><i></i></div></div>
 </div>
 <div id="statsPanel" style="display:none;position:fixed;z-index:30;left:50%;top:50%;transform:translate(-50%,-50%);width:min(360px,90vw);padding:18px;background:#101010f2;border:2px solid #f5c400;color:white;font:16px Barlow,sans-serif"><button id="closeStats" style="float:right">✕</button><h2>🏆 Rider Profile</h2><div id="statsContent"></div></div><div id="top"><button id="bcam">Cam</button><button id="brst">Reset</button><button id="bmute">Sound</button><button id="bpause">Pause</button></div>
 <div id="touch"><div class="tl"><button data-k="left" aria-label="Left">◀</button><button data-k="right" aria-label="Right">▶</button></div>
-<div class="tr"><button data-k="nitro" class="sm">N2O</button><button data-k="hand" class="sm">HB</button><button data-k="brake" aria-label="Brake">■</button><button data-k="gas" class="big" aria-label="Gas">▲</button><button id="mobileCam" hidden>CAM</button><button id="mobilePause" hidden>Ⅱ</button></div></div>
+<div class="tr"><button data-k="reverse" class="sm" aria-label="Reverse">R</button><button data-k="nitro" class="sm">N2O</button><button data-k="hand" class="sm">HB</button><button data-k="brake" aria-label="Brake">■</button><button data-k="gas" class="big" aria-label="Gas">▲</button><button id="mobileCam" hidden>CAM</button><button id="mobilePause" hidden>Ⅱ</button></div></div>
 <div id="rotate"><div class="ph"></div><b>Phone ko landscape me ghumao</b><span>Rotate your phone sideways to play</span></div>
 <button id="fsBtn" type="button" aria-label="Fullscreen">⛶</button>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 
-
-const fsButton=document.getElementById('fsBtn');
-if(fsButton) fsButton.addEventListener('click',async()=>{
-  try {
-    const target=document.documentElement;
-    if(!document.fullscreenElement && target.requestFullscreen) await target.requestFullscreen();
-    else if(document.exitFullscreen) await document.exitFullscreen();
-    if(screen.orientation && screen.orientation.lock) { try { await screen.orientation.lock('landscape'); } catch(_) {} }
-  } catch(e) { console.warn('Fullscreen/orientation is not supported by this browser',e); }
-});
-
 // ---- Multiplayer prototype: Socket.IO rooms and live bike sync ----
 let netSocket=null, netReady=false, onlineMode=false, onlineRoom='', netTick=0;
 const remoteRacers=new Map();
 function netMsg(s,ok=false){const e=document.getElementById('netStatus');if(e){e.textContent=s;e.style.color=ok?'#9cff9c':'#ffd27a'}}
 function racerName(){return (document.getElementById('playerName')?.value||'Racer').trim().slice(0,18)||'Racer'}
-
-function addChatLine(d){
-  const box=document.getElementById('chatMessages'); if(!box)return;
-  const row=document.createElement('div');
-  const name=document.createElement('b'); name.textContent=String(d.name||'Racer')+': ';
-  const msg=document.createElement('span'); msg.textContent=String(d.text||'');
-  row.append(name,msg); box.appendChild(row); box.scrollTop=box.scrollHeight;
-}
-function sendGlobalChat(){
-  const input=document.getElementById('chatInput'); if(!input||!input.value.trim())return;
-  if(!netSocket||!onlineRoom){addChatLine({name:'System',text:'Join Quick Match or a room before chatting.'});return;}
-  netSocket.emit('global-chat',{text:input.value.trim()});input.value='';
-}
-document.getElementById('chatSend')?.addEventListener('click',sendGlobalChat);
-document.getElementById('chatInput')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendGlobalChat();}});
-
 function connectNet(){
   if(typeof io==='undefined'){netMsg('Socket.IO unavailable. Start the game with npm start, then open http://localhost:3000.');return}
   netSocket=io();
   netSocket.on('connect',()=>{netReady=true;netMsg('Connected. Quick Match or create/join a room.',true)});
   netSocket.on('disconnect',()=>{netReady=false;netMsg('Disconnected — reconnecting…')});
-  netSocket.on('global-chat',addChatLine);
-  netSocket.on('chat-error',m=>addChatLine({name:'System',text:m}));
   netSocket.on('connect_error',()=>netMsg('Server not reachable. Run npm start and refresh.'));
   netSocket.on('room-joined',d=>{
     onlineRoom=d.room;onlineMode=true;
-    netMsg('Room '+d.room+' · '+d.players.length+' player(s)',true);
+    netMsg('Room '+d.room+' · '+d.players.length+'/6 players',true);
     $('ovmsg').textContent='Room '+d.room+' — share the code with friends. When ready, press Start Online Race.';
-    $('go').textContent='Start Online Race';
+    $('go').textContent='Start Online Race';const sb=document.getElementById('startOnline');if(sb){sb.disabled=d.players.length<6;sb.textContent=d.players.length<6?'Waiting for players ('+d.players.length+'/6)':'🏁 Start Online Race (6/6)';}
     syncRemoteList(d.players);
   });
-  netSocket.on('room-update',d=>{if(onlineRoom){netMsg('Room '+d.room+' · '+d.players.length+' player(s)',true);syncRemoteList(d.players)}});
+  netSocket.on('room-update',d=>{if(onlineRoom){netMsg('Room '+d.room+' · '+d.players.length+'/6 players',true);syncRemoteList(d.players);const b=document.getElementById('startOnline');if(b){b.disabled=d.players.length<6;b.textContent=d.players.length<6?'Waiting for players ('+d.players.length+'/6)':'🏁 Start Online Race (6/6)'}}});
+  netSocket.on('race-wait',d=>netMsg('Need 6 players to start · '+d.count+'/6 connected'));
+  netSocket.on('leaderboard-data',rows=>{const msg=rows.length?rows.map((r,i)=>(i+1)+'. '+r.name+' — '+r.finishes+' finishes'+(r.bestTime?' · best '+r.bestTime.toFixed(1)+'s':'')).join('\n'):'No online wins recorded yet.';alert('🏆 ONLINE LEADERBOARD\n\n'+msg)});
   netSocket.on('player-state',d=>setRemoteState(d));
   netSocket.on('player-left',id=>{const p=remoteRacers.get(id);if(p){scene.remove(p.b.root);remoteRacers.delete(id)}});
   netSocket.on('race-start',d=>{if(d.room===onlineRoom&&!started)startRace(true)});
@@ -596,24 +548,17 @@ const cB=new THREE.Color(0x33d6ff),cR=new THREE.Color(0xff2a10),cT=new THREE.Col
 const nl=new THREE.PointLight(0x33d6ff,0,12);nl.position.set(.2,.9,-1.7);setBike(SAVE.sel);
 
 // ---- Input ----
-const keys={},touch={}; let nitroToggle=false;
+const keys={},touch={};
 addEventListener('keydown',e=>{if(e.repeat)return;keys[e.code]=true;
   if(e.code==='KeyC')cycleCam();if(e.code==='KeyR')resetBike();if(e.code==='Escape')togglePause();
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault()});
 addEventListener('keyup',e=>keys[e.code]=false);
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false});
 document.querySelectorAll('#touch button').forEach(btn=>{const k=btn.dataset.k;
-  if(k==='nitro'){
-    btn.setAttribute('aria-label','Toggle nitro');
-    btn.addEventListener('pointerdown',e=>{e.preventDefault();nitroToggle=!nitroToggle;touch.nitro=nitroToggle;btn.classList.toggle('on',nitroToggle);btn.textContent=nitroToggle?'N2O ON':'N2O';});
-    return;
-  }
-  btn.addEventListener('pointerdown',e=>{e.preventDefault();touch[k]=true;btn.classList.add('on');try{btn.setPointerCapture(e.pointerId)}catch(_){}});
-  ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,()=>{touch[k]=false;btn.classList.remove('on')}));
-});
-
+  btn.addEventListener('pointerdown',e=>{touch[k]=true;btn.classList.add('on');btn.setPointerCapture(e.pointerId)});
+  ['pointerup','pointercancel'].forEach(ev=>btn.addEventListener(ev,()=>{touch[k]=false;btn.classList.remove('on')}))});
 function padInput(){let gas=false,brake=false,left=false,right=false,nitro=false,hand=false;try{const gp=navigator.getGamepads&&Array.from(navigator.getGamepads()).find(Boolean);if(gp){const ax=gp.axes[0]||0;left=ax<-.22||!!gp.buttons[14]?.pressed;right=ax>.22||!!gp.buttons[15]?.pressed;gas=!!gp.buttons[7]?.value||!!gp.buttons[0]?.pressed;brake=!!gp.buttons[6]?.value||!!gp.buttons[1]?.pressed;nitro=!!gp.buttons[2]?.pressed;hand=!!gp.buttons[3]?.pressed}}catch(e){}return{gas,brake,left,right,nitro,hand}}
-const inp=()=>{const p=padInput();return{gas:keys.KeyW||keys.ArrowUp||touch.gas||p.gas,brake:keys.KeyS||keys.ArrowDown||touch.brake||p.brake,left:keys.KeyA||keys.ArrowLeft||touch.left||p.left,right:keys.KeyD||keys.ArrowRight||touch.right||p.right,hand:keys.Space||touch.hand||p.hand,nitro:keys.ShiftLeft||keys.ShiftRight||touch.nitro||p.nitro}};
+const inp=()=>{const p=padInput();return{gas:keys.KeyW||keys.ArrowUp||touch.gas||p.gas,reverse:keys.KeyX||touch.reverse,brake:keys.KeyS||keys.ArrowDown||touch.brake||p.brake,left:keys.KeyA||keys.ArrowLeft||touch.left||p.left,right:keys.KeyD||keys.ArrowRight||touch.right||p.right,hand:keys.Space||touch.hand||p.hand,nitro:keys.ShiftLeft||keys.ShiftRight||touch.nitro||p.nitro}};
 
 // ---- State ----
 const S={x:P[0].x,z:P[0].z,h:Math.atan2(T[0].x,T[0].z),v:0,steer:0,nitro:1,pitch:0,lean:0,near:0,off:false,y:0,vy:0,air:false,hit:0,shake:0,mud:false,heat:0};
@@ -680,15 +625,15 @@ function step(dt){
   const i=RC.state==='race'?inp():{},max=BIKE.maxSpeed*1.0;let cap=max,prev=S.v;
   const useN=i.nitro&&S.nitro>0&&i.gas;
   if(useN){cap=max*BIKE.nitroBoost;S.nitro=Math.max(0,S.nitro-.28*dt)}else S.nitro=Math.min(1,S.nitro+.06*dt);
-  if(i.gas){S.v+=BIKE.accel*(useN?1.8:1)*Math.max(.05,1-S.v/cap)*dt}else S.v-=5*dt;
+  if(i.reverse){S.v-=BIKE.brake*.62*dt}else if(i.gas){if(S.v<0)S.v=Math.min(0,S.v+BIKE.brake*1.4*dt);else S.v+=BIKE.accel*(useN?1.8:1)*Math.max(.05,1-S.v/cap)*dt}else S.v-=Math.sign(S.v)*5*dt;
   if(S.v>cap)S.v-=30*dt;
-  if(i.brake)S.v-=BIKE.brake*dt;
-  if(i.hand)S.v-=22*dt;
+  if(i.brake){if(S.v>0)S.v=Math.max(0,S.v-BIKE.brake*dt);else S.v=Math.min(0,S.v+BIKE.brake*dt);}
+  if(i.hand)S.v-=Math.sign(S.v)*22*dt;
   const [bi,d]=nearest();S.near=bi;S.off=d>W+1;
   if(S.off&&S.v>16)S.v-=(S.v-14)*1.4*dt;                  // grass drag
   if(d>W+14){const ox=(S.x-P[bi].x)/d,oz=(S.z-P[bi].z)/d;S.x-=ox*(d-W-14);S.z-=oz*(d-W-14);S.v=Math.min(S.v,12)} // soft wall
-  S.v=Math.max(0,S.v);
-  const target=(i.left?1:0)-(i.right?1:0);S.steer+=(target-S.steer)*Math.min(1,dt*8);
+  S.v=Math.max(-12,S.v);
+  const target=((i.left?1:0)-(i.right?1:0))*(S.v<0?-1:1);S.steer+=(target-S.steer)*Math.min(1,dt*8);
   const wetFactor=(weatherMode==='rain'||weatherMode==='storm')?.78:weatherMode==='fog'?.94:1;const grip=Math.min(1,S.v/10)/(1+S.v*.028)*(i.hand?1.6:1)*wetFactor*(S.off?.78:1);
   S.h+=S.steer*BIKE.handling*grip*dt;
   S.x+=Math.sin(S.h)*S.v*dt;S.z+=Math.cos(S.h)*S.v*dt;
@@ -843,7 +788,7 @@ function startRace(fromServer=false){spawnTraffic();if(ac&&ac.state==='suspended
   RC.ais.forEach(a=>{a.base=31+MI*1.2+a.k*1.3;a.d=-(a.k+1)*1.3;a.fin=0;a.b.root.visible=(!onlineMode&&playMode!=='free'&&!trafficMode)});
   PICK.forEach(p=>{p.t=0;p.m.visible=true});bike.root.visible=true;started=true;paused=false;
   camera.clearViewOffset();$('overlay').style.display='none';$('race').style.display='block';if(playMode==='free'){$('race').innerHTML='🌍 FREE RIDE · Explore the world';}if(onlineMode&&!fromServer&&netSocket&&netReady)netSocket.emit('start-race',{room:onlineRoom,map:MI})}
-function finish(){RC.state='done';const pos=1+RC.ais.filter(a=>a.fin).length,rw=[800,500,300,150][pos-1];
+function finish(){RC.state='done';if(onlineMode&&netSocket&&netReady)netSocket.emit('race-finished',{room:onlineRoom,name:racerName(),time:RC.t});const pos=1+RC.ais.filter(a=>a.fin).length,rw=[800,500,300,150][pos-1];
   if(!onlineMode){SAVE.coins+=rw;SAVE.races=(SAVE.races||0)+1;if(pos===1)SAVE.wins++;if(!SAVE.bestTime||RC.t<SAVE.bestTime)SAVE.bestTime=RC.t;save();dailyMissionCheck()}
   setTimeout(()=>ov(['1st','2nd','3rd','4th'][pos-1]+' place','Race again',(onlineMode?'Online race finished · online rewards are not enabled yet':'Time '+RC.t.toFixed(1)+'s · +'+rw+' coins · Total '+SAVE.coins)),1500)}
 function race(dt){
@@ -857,6 +802,8 @@ function race(dt){
   if(RC.state!=='lobby'){const pos=1+RC.ais.filter(a=>a.d>RC.dist).length;
     const tt=RC.t,mm=Math.floor(tt/60);$('race').innerHTML='<span class="pos">'+pos+'<small>/4</small></span><b>Lap '+Math.min(LAPS,1+Math.floor(RC.dist/N))+'/'+LAPS+'</b><b>'+mm+':'+(tt%60).toFixed(1).padStart(4,'0')+'</b>'}}
 $('lobbyb').onclick=toLobby;
+document.getElementById('startOnline').onclick=()=>{if(!onlineRoom){netMsg('Join Quick Match or create/join a room first.');return}if(!netSocket||!netReady)return;netSocket.emit('start-race',{room:onlineRoom,map:MI})};
+document.getElementById('leaderboardBtn').onclick=()=>{if(netSocket&&netReady)netSocket.emit('get-leaderboard');else alert('Connect to the online server to view leaderboard.')};
 $('quickMatch').onclick=()=>enterRoom('quick');$('createRoom').onclick=()=>enterRoom('create');$('joinRoom').onclick=()=>enterRoom('join');connectNet();
 camera.position.set(S.x-Math.sin(S.h)*8,3.5,S.z-Math.cos(S.h)*8);toLobby();
 requestAnimationFrame(frame);
