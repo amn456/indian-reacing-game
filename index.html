@@ -2,13 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0b0b0a">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Indian Bike Racing Online – Phase 1</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;1,600;1,700&family=Barlow:wght@500;600&display=swap" rel="stylesheet">
 <style>
@@ -29,9 +23,9 @@ body>canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #help{left:16px;bottom:16px;font-size:14px;color:var(--dim);line-height:1.5}
 #top{position:fixed;right:12px;top:calc(12px + env(safe-area-inset-top,0px));display:flex;gap:8px;pointer-events:auto}
 button{font:inherit;font-weight:700;color:var(--ink);background:var(--panel);border:1px solid #ffffff30;border-radius:12px;padding:8px 14px;cursor:pointer;touch-action:none}
-#touch{position:fixed;inset:auto 0 calc(14px + env(safe-area-inset-bottom,0px)) 0;display:none;justify-content:space-between;padding:0 14px;pointer-events:none}
-#touch>div{display:flex;gap:10px;align-items:flex-end;pointer-events:auto}
-#touch button{width:74px;height:74px;font-size:22px;border-radius:50%}
+#touch{position:fixed;inset:auto 0 calc(10px + env(safe-area-inset-bottom,0px)) 0;display:none;justify-content:flex-end;padding:0 10px;pointer-events:none;z-index:20}
+#touch>div{display:flex;gap:6px;align-items:flex-end;pointer-events:auto}#touch .steerGroup{position:absolute;left:10px;bottom:0}#touch .actionGroup{margin-left:auto;max-width:72vw;flex-wrap:wrap;justify-content:flex-end}
+#touch button{width:58px;height:58px;font-size:20px;border-radius:50%;padding:0;touch-action:none}#touch button[data-k="nitro"]{width:62px;height:62px;background:#006a85;color:white;border:2px solid #45dfff}#touch button.latched{background:#f5c400!important;color:#111!important;box-shadow:0 0 14px #f5c40099}
 #touch button.on,button:active{background:var(--hot)}
 @media (pointer:coarse){#touch{display:flex}#help{display:none}#speed{bottom:110px}}
 #overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(circle at 50% 40%,#3a2418,#120d0b);text-align:center;z-index:5}
@@ -75,7 +69,7 @@ button{border-radius:0;border:0;color:var(--ink);font-family:'Barlow Condensed',
 #overlay p{font-size:17px;color:var(--dim);min-height:1.3em}
 #overlay #go{background:var(--hot);font:italic 700 36px 'Barlow Condensed',sans-serif;padding:10px 64px 10px 30px;clip-path:polygon(0 0,100% 0,calc(100% - 24px) 100%,0 100%)}
 #overlay #lobbyb{color:var(--ink);font-size:20px}
-#overlay::after{content:'';position:fixed;left:0;right:0;bottom:0;height:8px;background:repeating-linear-gradient(-45deg,var(--hot) 0 12px,#0b0b0a 12px 24px)}
+#globalChat{position:relative;z-index:9}#overlay::after{content:'';position:fixed;left:0;right:0;bottom:0;height:8px;background:repeating-linear-gradient(-45deg,var(--hot) 0 12px,#0b0b0a 12px 24px)}
 #garage{grid-template-columns:1fr}
 #garage .coins{font:italic 700 30px 'Barlow Condensed',sans-serif;color:var(--ink)}
 #garage .coins::before{content:'';display:inline-block;width:.7em;height:.7em;border-radius:50%;background:var(--hot);box-shadow:inset -3px -3px 0 #0003;margin-right:10px}
@@ -107,91 +101,48 @@ button{border-radius:0;border:0;color:var(--ink);font-family:'Barlow Condensed',
 @media(max-width:650px){#envToggle{top:8px;right:8px;padding:8px 10px;font-size:12px}#envLabel{top:48px;right:8px}}
 .wx{padding:6px 10px;background:#222;color:#fff;border:1px solid #777;font-size:15px;cursor:pointer}.wx.active{background:#f5c400;color:#111;border-color:#fff}
 #weatherPanel small{color:#ddd}
-/* ===== MOBILE / LANDSCAPE UPDATE ===== */
-*{-webkit-tap-highlight-color:transparent}
-html,body{overscroll-behavior:none;touch-action:none}
-#overlay,#statsPanel{touch-action:pan-y}
-button,#touch,#hud{-webkit-touch-callout:none;touch-action:none}
-input{touch-action:manipulation}
-#rotate{display:none}
-#fsBtn{display:none}
 
-/* ---------- Touch devices: controls ---------- */
-@media (pointer:coarse){
-  :root{--b:clamp(54px,17vh,86px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px);--sb:env(safe-area-inset-bottom,0px)}
-  #touch{position:fixed;inset:0;display:block;padding:0;pointer-events:none;z-index:3}
-  #touch>div{position:absolute;bottom:calc(10px + var(--sb));pointer-events:none}
-  #touch button{pointer-events:auto;width:var(--b);height:var(--b);border-radius:50%;font-size:calc(var(--b)*.34);background:#0b0b0a99;border:2px solid #f5c400aa;padding:0;touch-action:none;-webkit-user-select:none;user-select:none}
-  #touch .tl{left:calc(14px + var(--sl));display:flex;gap:calc(var(--b)*.35)}
-  #touch .tl button{width:calc(var(--b)*1.3);height:calc(var(--b)*1.3);border-radius:22px;font-size:calc(var(--b)*.55)}
-  #touch .tr{right:calc(14px + var(--sr));display:grid;grid-template-columns:auto auto;gap:calc(var(--b)*.18);align-items:end;justify-items:end}
-  #touch .tr .big{width:calc(var(--b)*1.5);height:calc(var(--b)*1.5);font-size:calc(var(--b)*.6);background:#f5c400cc;color:#0b0b0a;border-color:#fff}
-  #touch .tr .sm{width:calc(var(--b)*.82);height:calc(var(--b)*.82);font-size:calc(var(--b)*.26)}
-  #touch .tr [data-k=nitro]{border-color:var(--nitro);color:var(--nitro)}
-  #touch button.on{background:var(--hot);color:#0b0b0a}
-  #touch .tr [data-k=nitro].on{background:var(--nitro)}
-  #mobileCam,#mobilePause{display:none!important}
-
-  /* ---------- HUD (compact, fits in landscape) ---------- */
-  #help,#envLabel,#mapLegend,#cam{display:none!important}
-  #info{left:calc(8px + env(safe-area-inset-left,0px));top:calc(8px + env(safe-area-inset-top,0px));padding:5px 10px;font-size:12px;line-height:1.2;border-left-width:3px}
-  #info #stat{font-size:11px;color:var(--dim)}
-  #miniMap{width:clamp(90px,26vh,130px)!important;height:auto!important;aspect-ratio:180/130;margin-top:3px!important}
-  #showStats{display:none}
-  #speed{right:auto!important;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;min-width:0!important;padding:4px 14px;text-align:center}
-  #kmh{font-size:clamp(40px,13vh,64px)}
-  #unit{font-size:14px;justify-content:center;margin-top:2px}
-  #gear{font-size:18px;padding:0 7px}
-  #speed .bar{height:6px;margin-top:3px;min-width:120px}
-  #speed>div[style]{font-size:10px!important;margin-top:3px!important}
-  #race{top:calc(6px + env(safe-area-inset-top,0px))!important;padding:3px 14px!important;font-size:15px!important}
-  #race .pos{font-size:34px;margin-right:10px}#race .pos small{font-size:16px}#race b{margin-right:10px}
-  #cd{font-size:clamp(70px,32vh,170px)!important;top:18%!important}
-
-  /* ---------- Top buttons (touch-sized) ---------- */
-  #top{right:calc(8px + env(safe-area-inset-right,0px));top:calc(8px + env(safe-area-inset-top,0px));gap:6px;z-index:6}
-  #top button{min-height:38px;min-width:40px;padding:4px 12px;font-size:15px}
-  #top #envToggle{position:static;font-size:13px;padding:4px 10px;border-radius:0;background:var(--panel);border:0;letter-spacing:0}
-  #bmute{display:none}
-  #fsBtn{display:block;position:fixed;left:calc(8px + env(safe-area-inset-left,0px));top:50%;transform:translateY(-50%);z-index:6;width:34px;height:34px;padding:0;font-style:normal;font-size:18px;opacity:.55;border-radius:8px;background:var(--panel)}
-  body.playing #fsBtn{display:none}
-  #statsPanel{max-height:86vh;overflow:auto}
+@media (max-width: 800px), (pointer:coarse){
+ html,body{width:100%;height:100%;height:100dvh;overscroll-behavior:none;touch-action:manipulation}
+ body>canvas{width:100vw;height:100dvh;touch-action:none}
+ #globalChat{max-width:100%;} #chatMessages{height:80px!important} #overlay{width:100vw;height:100dvh;inset:0;justify-content:flex-start;align-items:stretch;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(18px + env(safe-area-inset-bottom,0px));gap:10px;text-align:left;overflow-y:auto}
+ #overlay h1{font-size:clamp(38px,11vw,64px);padding-left:10px;border-left-width:7px}
+ #overlay p{font-size:14px;max-width:100%}
+ #overlay #go{font-size:28px;padding:8px 24px 8px 18px}
+ #overlay #modePanel{max-width:100%!important}
+ #overlay #modePanel button{font-size:16px;padding:9px 10px}
+ #overlay #garage{width:100%;grid-template-columns:1fr;gap:6px}
+ #overlay .bk{grid-template-columns:1fr auto;gap:6px 8px;padding:8px}
+ .nm b{font-size:22px}
+ #overlay #maps{width:100%}
+ #overlay .mp{min-width:0}
+ #top{top:calc(5px + env(safe-area-inset-top,0px));right:5px;gap:4px}
+ #top button{font-size:14px;padding:5px 8px}
+ #info{left:6px;top:calc(5px + env(safe-area-inset-top,0px));font-size:12px;max-width:45vw}
+ #speed{right:6px;bottom:calc(150px + env(safe-area-inset-bottom,0px));min-width:100px;padding:7px}
+ #kmh{font-size:54px}#unit{font-size:13px}#gear{font-size:20px}
+ #touch{display:flex;bottom:calc(8px + env(safe-area-inset-bottom,0px));padding:0 8px}
+ #touch button{width:clamp(43px,12vw,56px);height:clamp(43px,12vw,56px);font-size:15px}
+ #touch button[data-k="nitro"]{width:clamp(48px,13vw,60px);height:clamp(48px,13vw,60px)}
+ #touch .steerGroup{left:8px;gap:5px}
+ #touch .actionGroup{gap:4px;max-width:75vw}
+ #statsPanel{max-height:80dvh;overflow:auto}
 }
-
-/* ---------- Rotate-to-landscape guard ---------- */
-@media (pointer:coarse) and (orientation:portrait){
-  #rotate{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0b0b0a;color:var(--ink);text-align:center;padding:24px}
-  #rotate b{font:italic 700 34px/1 'Barlow Condensed',sans-serif;text-transform:uppercase;color:var(--hot)}
-  #rotate span{color:var(--dim);font-size:16px}
-  #rotate .ph{width:54px;height:92px;border:4px solid var(--hot);border-radius:10px;animation:rot 1.8s ease-in-out infinite}
-  @keyframes rot{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
-  #fsBtn{display:none}
+@media (orientation:landscape) and (max-height:500px){
+ #touch button{width:44px;height:44px;font-size:13px}
+ #touch button[data-k="nitro"]{width:48px;height:48px}
+ #speed{bottom:calc(66px + env(safe-area-inset-bottom,0px))}
+ #overlay{gap:6px;padding-top:calc(5px + env(safe-area-inset-top,0px))}
+ #overlay h1{font-size:38px}
 }
-
-/* ---------- Lobby: 2 columns in landscape ---------- */
-#overlay.lob2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:0 18px;align-items:start;align-content:start;overflow:hidden;padding:max(10px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));text-align:left}
-#overlay.lob2 .col{min-height:0;max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px);overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:8px;padding-right:4px;touch-action:pan-y;scrollbar-width:thin}
-#overlay.lob2 .col>*{max-width:100%!important;width:auto;box-sizing:border-box}
-#overlay.lob2 #garage,#overlay.lob2 #maps,#overlay.lob2 #onlineBox,#overlay.lob2 #weatherPanel{width:100%!important;max-width:100%!important;margin:0!important}
-#overlay.lob2 #maps{grid-template-columns:repeat(3,1fr)}
-#overlay.lob2 h1{font-size:clamp(30px,10vh,64px)}
-#overlay.lob2 p{font-size:14px;max-width:none}
-#overlay.lob2 #go{font-size:30px;position:sticky;bottom:0;z-index:2}
-#overlay.lob2.pz{grid-template-columns:minmax(0,520px);justify-content:center}
-#overlay.lob2.pz .colR{display:none}
-#overlay.lob2 button{min-height:40px}
-@media (pointer:coarse){#overlay input{font-size:16px!important}}
-#overlay.lob2[style*="flex"]{display:grid!important}
-@media (max-width:700px){#overlay.lob2,#overlay.lob2[style*="flex"]{grid-template-columns:minmax(0,1fr)!important;overflow-y:auto}#overlay.lob2 .col{max-height:none;overflow:visible}}
-
 </style>
 </head>
 <body>
-<div id="overlay"><h1>Indian Bike Racing</h1><p id="ovmsg">Win races to earn coins and unlock bikes. Blue canisters refill your nitro.</p><div id="garage"></div><div style="display:flex;gap:6px;flex-wrap:wrap;max-width:560px;margin:6px 0"><button id="bikeAll">🏍️ All Bikes</button><button id="bikeStreet">🏁 Street</button><button id="bikeOffroad">🌄 Off-road</button><button id="bikeSport">⚡ Sport</button></div><div id="modePanel" style="display:flex;gap:8px;flex-wrap:wrap;max-width:560px;margin:6px 0"><button id="freeRideBtn">🌍 Free Ride (Online)</button><button id="trafficBtn">🚦 Traffic City Map</button><button id="champBtn">🏆 Championship</button></div><small style="max-width:560px;color:#ddd">Tip: drag on the game view to rotate the showroom bike 360°.</small><div id="maps"></div>
+<div id="overlay"><h1>Indian Bike Racing</h1><p id="ovmsg">Win races to earn coins and unlock bikes. Blue canisters refill your nitro.</p><div id="garage"></div><div style="display:flex;gap:6px;flex-wrap:wrap;max-width:560px;margin:6px 0"><button id="bikeAll">🏍️ All Bikes</button><button id="bikeStreet">🏁 Street</button><button id="bikeOffroad">🌄 Off-road</button><button id="bikeSport">⚡ Sport</button></div><div id="modePanel" style="display:flex;gap:8px;flex-wrap:wrap;max-width:560px;margin:6px 0"><button id="offlineWorldBtn">🗺️ Offline Open World</button><button id="freeRideBtn">🌍 Online Free Ride</button><button id="trafficBtn">🚦 Traffic City Map</button><button id="champBtn">🏆 Championship</button></div><small style="max-width:560px;color:#ddd">Tip: drag on the game view to rotate the showroom bike 360°.</small><div id="maps"></div>
 <div id="onlineBox" style="width:min(520px,100%);display:grid;gap:8px">
   <input id="playerName" maxlength="18" value="Racer" placeholder="Racer name" style="box-sizing:border-box;width:100%;padding:10px;background:#111;color:#fff;border:1px solid #777;font:18px Barlow,sans-serif">
   <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <button id="quickMatch" style="font-size:18px;padding:9px 12px">Quick Match</button>
+    <button id="quickMatch" style="font-size:18px;padding:9px 12px">🎲 Random Match (6 Players)</button>
     <button id="createRoom" style="font-size:18px;padding:9px 12px">Create Room</button>
   </div>
   <div style="display:flex;gap:8px">
@@ -199,6 +150,11 @@ input{touch-action:manipulation}
     <button id="joinRoom" style="font-size:18px;padding:9px 12px">Join</button>
   </div>
   <div id="netStatus" style="font-size:14px;color:#ddd">Connecting to multiplayer server…</div>
+  <section id="globalChat" style="display:grid;gap:6px;padding:10px;background:#090909d9;border:1px solid #f5c400;width:100%;box-sizing:border-box">
+    <strong style="color:#f5c400">🌐 GLOBAL CHAT</strong>
+    <div id="chatMessages" aria-live="polite" style="height:105px;overflow:auto;text-align:left;background:#151515;padding:6px;font-size:13px;overflow-wrap:anywhere"><div style="color:#aaa">Connect to chat with everyone online.</div></div>
+    <form id="chatForm" style="display:flex;gap:6px"><input id="chatInput" maxlength="180" placeholder="Say something…" style="min-width:0;flex:1;padding:9px;background:#111;color:#fff;border:1px solid #777"><button type="submit" style="padding:8px 12px">Send</button></form>
+  </section>
 </div>
 <div id="weatherPanel" style="width:min(560px,92vw);margin:8px 0;padding:10px;background:#111c;border:1px solid #f5c400;display:grid;gap:6px">
 <strong style="color:#f5c400">WEATHER & TIME</strong>
@@ -214,10 +170,7 @@ input{touch-action:manipulation}
     <div class="bar" id="rpm"><i></i></div><div style="font-size:13px;color:var(--nitro);margin-top:6px">NITRO (Shift)</div><div class="bar" id="nitro"><i></i></div></div>
 </div>
 <div id="statsPanel" style="display:none;position:fixed;z-index:30;left:50%;top:50%;transform:translate(-50%,-50%);width:min(360px,90vw);padding:18px;background:#101010f2;border:2px solid #f5c400;color:white;font:16px Barlow,sans-serif"><button id="closeStats" style="float:right">✕</button><h2>🏆 Rider Profile</h2><div id="statsContent"></div></div><div id="top"><button id="bcam">Cam</button><button id="brst">Reset</button><button id="bmute">Sound</button><button id="bpause">Pause</button></div>
-<div id="touch"><div class="tl"><button data-k="left" aria-label="Left">◀</button><button data-k="right" aria-label="Right">▶</button></div>
-<div class="tr"><button data-k="nitro" class="sm">N2O</button><button data-k="hand" class="sm">HB</button><button data-k="brake" aria-label="Brake">■</button><button data-k="gas" class="big" aria-label="Gas">▲</button><button id="mobileCam" hidden>CAM</button><button id="mobilePause" hidden>Ⅱ</button></div></div>
-<div id="rotate"><div class="ph"></div><b>Phone ko landscape me ghumao</b><span>Rotate your phone sideways to play</span></div>
-<button id="fsBtn" type="button" aria-label="Fullscreen">⛶</button>
+<div id="touch"><div class="steerGroup"><button data-k="left">◀</button><button data-k="right">▶</button></div><div class="actionGroup"><button data-k="nitro" id="nitroToggle" aria-pressed="false">N₂O</button><button data-k="brake">BRAKE</button><button data-k="gas">GAS</button><button id="mobileCam">CAM</button><button id="mobilePause">Ⅱ</button><button id="mobileFullscreen">⛶</button></div></div>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -227,10 +180,14 @@ let netSocket=null, netReady=false, onlineMode=false, onlineRoom='', netTick=0;
 const remoteRacers=new Map();
 function netMsg(s,ok=false){const e=document.getElementById('netStatus');if(e){e.textContent=s;e.style.color=ok?'#9cff9c':'#ffd27a'}}
 function racerName(){return (document.getElementById('playerName')?.value||'Racer').trim().slice(0,18)||'Racer'}
+function addChatLine(d){const box=document.getElementById('chatMessages');if(!box)return;const row=document.createElement('div');const n=document.createElement('b');n.textContent=(d.name||'Racer')+': ';const m=document.createElement('span');m.textContent=d.message||'';row.append(n,m);box.appendChild(row);while(box.children.length>60)box.removeChild(box.firstChild);box.scrollTop=box.scrollHeight}
+document.getElementById('chatForm').addEventListener('submit',e=>{e.preventDefault();const input=document.getElementById('chatInput'),message=input.value.trim();if(!message)return;if(!netSocket||!netReady){addChatLine({name:'System',message:'Connect to the online server before using global chat.'});return}netSocket.emit('global-chat',{name:racerName(),message});input.value=''});
+
 function connectNet(){
   if(typeof io==='undefined'){netMsg('Socket.IO unavailable. Start the game with npm start, then open http://localhost:3000.');return}
   netSocket=io();
-  netSocket.on('connect',()=>{netReady=true;netMsg('Connected. Quick Match or create/join a room.',true)});
+  netSocket.on('connect',()=>{netReady=true;netMsg('Online · Random Match supports up to 6 players.',true)});
+  netSocket.on('global-chat',addChatLine);
   netSocket.on('disconnect',()=>{netReady=false;netMsg('Disconnected — reconnecting…')});
   netSocket.on('connect_error',()=>netMsg('Server not reachable. Run npm start and refresh.'));
   netSocket.on('room-joined',d=>{
@@ -318,7 +275,7 @@ const MAP=MAPS[MI],TRACK=MAP;
 
 // ---- Scene ----
 const renderer=new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,matchMedia("(pointer:coarse)").matches?1.25:1.75));
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -544,17 +501,20 @@ const cB=new THREE.Color(0x33d6ff),cR=new THREE.Color(0xff2a10),cT=new THREE.Col
 const nl=new THREE.PointLight(0x33d6ff,0,12);nl.position.set(.2,.9,-1.7);setBike(SAVE.sel);
 
 // ---- Input ----
-const keys={},touch={};
+const keys={},touch={}; let nitroLatched=false;
 addEventListener('keydown',e=>{if(e.repeat)return;keys[e.code]=true;
   if(e.code==='KeyC')cycleCam();if(e.code==='KeyR')resetBike();if(e.code==='Escape')togglePause();
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault()});
 addEventListener('keyup',e=>keys[e.code]=false);
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false});
-document.querySelectorAll('#touch button').forEach(btn=>{const k=btn.dataset.k;
-  btn.addEventListener('pointerdown',e=>{touch[k]=true;btn.classList.add('on');btn.setPointerCapture(e.pointerId)});
-  ['pointerup','pointercancel'].forEach(ev=>btn.addEventListener(ev,()=>{touch[k]=false;btn.classList.remove('on')}))});
+document.querySelectorAll('#touch button[data-k]').forEach(btn=>{const k=btn.dataset.k;
+  if(k==='nitro'){btn.addEventListener('click',e=>{e.preventDefault();nitroLatched=!nitroLatched;btn.classList.toggle('latched',nitroLatched);btn.setAttribute('aria-pressed',String(nitroLatched));});return;}
+  btn.addEventListener('pointerdown',e=>{e.preventDefault();touch[k]=true;btn.classList.add('on');try{btn.setPointerCapture(e.pointerId)}catch(_){}});
+  ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,()=>{touch[k]=false;btn.classList.remove('on')}))});
+function toggleFullscreen(){const el=document.documentElement;if(!document.fullscreenElement){(el.requestFullscreen?.()||el.webkitRequestFullscreen?.())?.catch?.(()=>{});}else{(document.exitFullscreen?.()||document.webkitExitFullscreen?.());}}
+document.getElementById('mobileFullscreen')?.addEventListener('click',toggleFullscreen);
 function padInput(){let gas=false,brake=false,left=false,right=false,nitro=false,hand=false;try{const gp=navigator.getGamepads&&Array.from(navigator.getGamepads()).find(Boolean);if(gp){const ax=gp.axes[0]||0;left=ax<-.22||!!gp.buttons[14]?.pressed;right=ax>.22||!!gp.buttons[15]?.pressed;gas=!!gp.buttons[7]?.value||!!gp.buttons[0]?.pressed;brake=!!gp.buttons[6]?.value||!!gp.buttons[1]?.pressed;nitro=!!gp.buttons[2]?.pressed;hand=!!gp.buttons[3]?.pressed}}catch(e){}return{gas,brake,left,right,nitro,hand}}
-const inp=()=>{const p=padInput();return{gas:keys.KeyW||keys.ArrowUp||touch.gas||p.gas,brake:keys.KeyS||keys.ArrowDown||touch.brake||p.brake,left:keys.KeyA||keys.ArrowLeft||touch.left||p.left,right:keys.KeyD||keys.ArrowRight||touch.right||p.right,hand:keys.Space||touch.hand||p.hand,nitro:keys.ShiftLeft||keys.ShiftRight||touch.nitro||p.nitro}};
+const inp=()=>{const p=padInput();return{gas:keys.KeyW||keys.ArrowUp||touch.gas||p.gas,brake:keys.KeyS||keys.ArrowDown||touch.brake||p.brake,left:keys.KeyA||keys.ArrowLeft||touch.left||p.left,right:keys.KeyD||keys.ArrowRight||touch.right||p.right,hand:keys.Space||p.hand,nitro:keys.ShiftLeft||keys.ShiftRight||nitroLatched||p.nitro}};
 
 // ---- State ----
 const S={x:P[0].x,z:P[0].z,h:Math.atan2(T[0].x,T[0].z),v:0,steer:0,nitro:1,pitch:0,lean:0,near:0,off:false,y:0,vy:0,air:false,hit:0,shake:0,mud:false,heat:0};
@@ -588,7 +548,8 @@ renderer.domElement.addEventListener('pointermove',e=>{if(showroomDrag&&RC.state
 ['pointerup','pointercancel'].forEach(ev=>renderer.domElement.addEventListener(ev,()=>showroomDrag=false));
 function filterBikes(category){document.querySelectorAll('#garage .bk').forEach((el,i)=>{const k=BIKES[i]?.kind||el.querySelector('.nm small')?.textContent||'';const show=category==='all'||(category==='street'&&/street|naked/i.test(k))||(category==='offroad'&&/off.?road|dirt|enduro|motocross|adventure/i.test(k))||(category==='sport'&&/sport|superbike|hyperbike/i.test(k));el.style.display=show?'':'none'})}
 $('bikeAll').onclick=()=>filterBikes('all');$('bikeStreet').onclick=()=>filterBikes('street');$('bikeOffroad').onclick=()=>filterBikes('offroad');$('bikeSport').onclick=()=>filterBikes('sport');
-$('freeRideBtn').onclick=()=>{playMode='free';trafficMode=false;try{sessionStorage.setItem('ibr_play_mode','free')}catch(e){}onlineMode=!!onlineRoom;$('ovmsg').textContent='Free Ride selected. Join/create a room first to explore with friends; without a room this is solo free ride.';$('go').textContent='Start Free Ride';};
+$('offlineWorldBtn').onclick=()=>{playMode='free';trafficMode=false;onlineMode=false;try{sessionStorage.setItem('ibr_play_mode','free');sessionStorage.setItem('ibr_offline_world','1')}catch(e){}$('ovmsg').textContent='OFFLINE OPEN WORLD selected. Explore the currently loaded map solo; no internet required after the game assets load.';$('go').textContent='Start Offline World';};
+$('freeRideBtn').onclick=()=>{try{sessionStorage.removeItem('ibr_offline_world')}catch(e){}playMode='free';trafficMode=false;try{sessionStorage.setItem('ibr_play_mode','free')}catch(e){}onlineMode=!!onlineRoom;$('ovmsg').textContent='Free Ride selected. Join/create a room first to explore with friends; without a room this is solo free ride.';$('go').textContent='Start Free Ride';};
 $('trafficBtn').onclick=()=>{playMode='race';trafficMode=true;try{sessionStorage.setItem('ibr_play_mode','traffic')}catch(e){}onlineMode=false;const city=MAPS.findIndex(m=>/City Night Race/i.test(m.name));if(city>=0&&city!==MI){try{sessionStorage.setItem('map',city)}catch(e){}location.hash='m'+city;location.reload();return}$('ovmsg').textContent='Traffic City Map selected. Traffic vehicles move along the road during the ride.';$('go').textContent='Start Traffic Ride';};
 $('champBtn').onclick=()=>{playMode='champ';trafficMode=false;try{sessionStorage.setItem('ibr_play_mode','champ')}catch(e){}championshipStage=0;$('ovmsg').textContent='Championship: Village Sprint → Mountain Challenge → Forest Rally → Desert Rally → Champion Race. Complete races to progress; championship rewards are tracked locally.';$('go').textContent='Start Championship Race 1/5';};
 if(playMode==='free'){$('ovmsg').textContent='Free Ride selected. Ride freely without race laps.';$('go').textContent='Start Free Ride';}else if(trafficMode){$('ovmsg').textContent='Traffic City Map selected. Traffic vehicles move along the road during the ride.';$('go').textContent='Start Traffic Ride';}else if(playMode==='champ'){$('go').textContent='Start Championship Race 1/5';}
@@ -597,13 +558,13 @@ if(playMode==='free'){$('ovmsg').textContent='Free Ride selected. Ride freely wi
 // ---- Audio (synth engine; pitch follows RPM) ----
 let ac,osc,osc2,gain,muted=false,skidOsc,skidGain,windOsc,windGain;
 function initAudio(){if(ac)return;try{ac=new (window.AudioContext||window.webkitAudioContext)();
-  const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;gain=ac.createGain();gain.gain.value=0;
-  osc=ac.createOscillator();osc.type='sawtooth';osc2=ac.createOscillator();osc2.type='square';
+  const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1250;gain=ac.createGain();gain.gain.value=0;
+  osc=ac.createOscillator();osc.type='sawtooth';osc2=ac.createOscillator();osc2.type='triangle';
   osc.connect(lp);osc2.connect(lp);lp.connect(gain);gain.connect(ac.destination);osc.start();osc2.start();skidOsc=ac.createOscillator();skidOsc.type='triangle';skidGain=ac.createGain();skidGain.gain.value=0;skidOsc.frequency.value=780;skidOsc.connect(skidGain);skidGain.connect(ac.destination);skidOsc.start();windOsc=ac.createOscillator();windOsc.type='sawtooth';windOsc.frequency.value=95;windGain=ac.createGain();windGain.gain.value=0;const wf=ac.createBiquadFilter();wf.type='lowpass';wf.frequency.value=260;windOsc.connect(wf);wf.connect(windGain);windGain.connect(ac.destination);windOsc.start()}catch(e){ac=null}}
 bmute.onclick=()=>{muted=!muted;bmute.textContent=muted?'Muted':'Sound'};
 function stopEngineAudio(){if(gain&&ac){try{gain.gain.setTargetAtTime(0,ac.currentTime,0.04);if(skidGain)skidGain.gain.setTargetAtTime(0,ac.currentTime,.04);if(windGain)windGain.gain.setTargetAtTime(0,ac.currentTime,.04)}catch(e){gain.gain.value=0}}}
-function audio(rpm,gas){if(!ac||!started||paused||RC.state==='lobby'){stopEngineAudio();return}const f=40+rpm*110;osc.frequency.value=f;osc2.frequency.value=f*.5;
-  gain.gain.value=muted?0:.05+.07*(gas?1:.4)*rpm;if(skidGain)skidGain.gain.setTargetAtTime(muted?0:(S.off||S.mud?Math.min(.08,S.v/500):0),ac.currentTime,.05);if(windGain)windGain.gain.setTargetAtTime(muted?0:Math.min(.055,S.v/1300),ac.currentTime,.08);if(skidOsc)skidOsc.frequency.setTargetAtTime(450+S.v*8,ac.currentTime,.05);if(windOsc)windOsc.frequency.setTargetAtTime(70+S.v*2,ac.currentTime,.08)}
+function audio(rpm,gas){if(!ac||!started||paused||RC.state==='lobby'){stopEngineAudio();return}const f=38+rpm*145;osc.frequency.setTargetAtTime(f,ac.currentTime,.035);osc2.frequency.setTargetAtTime(f*.502,ac.currentTime,.05);
+  gain.gain.setTargetAtTime(muted?0:(.025+.055*(gas?1:.35)*rpm),ac.currentTime,.045);if(skidGain)skidGain.gain.setTargetAtTime(muted?0:(S.off||S.mud?Math.min(.08,S.v/500):0),ac.currentTime,.05);if(windGain)windGain.gain.setTargetAtTime(muted?0:Math.min(.055,S.v/1300),ac.currentTime,.08);if(skidOsc)skidOsc.frequency.setTargetAtTime(450+S.v*8,ac.currentTime,.05);if(windOsc)windOsc.frequency.setTargetAtTime(70+S.v*2,ac.currentTime,.08)}
 document.getElementById('go').onclick=()=>{initAudio();if(ac&&ac.state==='suspended')ac.resume();
   if(paused){paused=false;ov(null)}else {if(!onlineRoom)onlineMode=false;startRace()}};
 
@@ -801,66 +762,6 @@ $('lobbyb').onclick=toLobby;
 $('quickMatch').onclick=()=>enterRoom('quick');$('createRoom').onclick=()=>enterRoom('create');$('joinRoom').onclick=()=>enterRoom('join');connectNet();
 camera.position.set(S.x-Math.sin(S.h)*8,3.5,S.z-Math.cos(S.h)*8);toLobby();
 requestAnimationFrame(frame);
-</script>
-<script>
-// ===== Mobile / landscape layer (kept separate from the core game code) =====
-(function(){
-  const coarse=matchMedia('(pointer:coarse)');
-  const $$=id=>document.getElementById(id);
-
-  // 1) Lobby: split into two columns (left = start & modes, right = bikes & maps)
-  const ov=$$('overlay');
-  if(ov){
-    const L=document.createElement('div'),R=document.createElement('div');
-    L.className='col colL';R.className='col colR';
-    const tip=[...ov.querySelectorAll('small')].find(e=>!e.id&&/drag/i.test(e.textContent));
-    [ov.querySelector('h1'),$$('ovmsg'),$$('go'),$$('lobbyb'),$$('modePanel'),tip,$$('onlineBox'),$$('weatherPanel')]
-      .forEach(e=>e&&L.appendChild(e));
-    [$$('bikeAll')?.parentElement,$$('garage'),$$('maps')].forEach(e=>e&&R.appendChild(e));
-    ov.appendChild(L);ov.appendChild(R);ov.classList.add('lob2');
-  }
-
-  // 2) Day/Night toggle lives inside the top button row on touch devices (no overlap)
-  const env=$$('envToggle'),top=$$('top');
-  function placeEnv(){if(!env||!top)return;if(coarse.matches){if(env.parentElement!==top)top.insertBefore(env,top.firstChild)}else if(env.parentElement===top)document.body.appendChild(env)}
-  placeEnv();coarse.addEventListener?.('change',placeEnv);
-
-  // 3) Fullscreen + landscape lock (needs a user tap; Android Chrome supports lock, iPhone shows the rotate screen instead)
-  async function goLandscape(){
-    if(!coarse.matches)return;
-    try{
-      const el=document.documentElement;
-      if(!document.fullscreenElement&&el.requestFullscreen)await el.requestFullscreen({navigationUI:'hide'});
-      else if(!document.fullscreenElement&&el.webkitRequestFullscreen)el.webkitRequestFullscreen();
-    }catch(e){}
-    try{await screen.orientation?.lock?.('landscape')}catch(e){}
-    wake();
-  }
-  let wl=null;
-  async function wake(){try{if('wakeLock' in navigator&&!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>wl=null)}}catch(e){}}
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
-  const fs=$$('fsBtn');if(fs)fs.onclick=goLandscape;
-  addEventListener('pointerup',function once(){if(coarse.matches){goLandscape();removeEventListener('pointerup',once)}},{once:false});
-  document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&coarse.matches){/* user left fullscreen; next tap re-enters */addEventListener('pointerup',function o2(){goLandscape();removeEventListener('pointerup',o2)})}});
-
-  // 4) Hide the lobby-only fullscreen button while racing
-  const mo=new MutationObserver(()=>document.body.classList.toggle('playing',getComputedStyle(ov).display==='none'));
-  if(ov)mo.observe(ov,{attributes:true,attributeFilter:['style','class']});
-
-  // 5) Auto-pause when the phone is turned to portrait during a race
-  const portrait=matchMedia('(orientation:portrait)');
-  function guard(){try{if(coarse.matches&&portrait.matches&&started&&!paused)togglePause()}catch(e){}}
-  portrait.addEventListener?.('change',guard);
-
-  // 6) Re-fit canvas after rotation / address-bar changes
-  const refit=()=>setTimeout(()=>{try{resize()}catch(e){}},250);
-  addEventListener('orientationchange',refit);
-  if(screen.orientation)screen.orientation.addEventListener('change',refit);
-
-  // 7) No long-press menu / text selection on controls
-  addEventListener('contextmenu',e=>{if(coarse.matches)e.preventDefault()});
-})();
-
 </script>
 </body>
 </html>
